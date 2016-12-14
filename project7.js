@@ -1,10 +1,20 @@
 var screen = document.getElementById("screen")
 var namespace = "http://www.w3.org/2000/svg"
-var colorSelect = document.getElementById("colorSelect").value;
-var shapeSelect = document.getElementById("shapeSelect").value;
-var sizeSelect = document.getElementById("sizeSelect").value;
+var colorSelector = document.getElementById("colorSelect");
+var color = "red";
+var shapeSelector = document.getElementById("shapeSelect");
+var shape = "square";
+var sizeSelector = document.getElementById("sizeSelect");
+var size = 10;
+var customColor = document.getElementById("customColor");
+var customSize = document.getElementById("customSize");
 var toggleDraw = false;
 var erase = false;
+var rainbowArray = ["#ff0000", "#ff4000", "#ff8000", "#ffbf00", "#ffff00", "#bfff00", "#80ff00", "#40ff00", "#00ff00", "#00ff40", "#00ff80", "#00ffbf", "#00ffff", "#00bfff", "#0080ff", "#0040ff", "#0000ff", "#4000ff", "#8000ff", "#bf00ff", "#ff00ff", "	#ff00bf", "#ff0080", "#ff0040", "#ff0000"];
+var rainbowIndex = 0;
+var undoArray = [];
+var currentUndo = [];
+var undoLength = 0;
 
 // utility function
 function transformPoint(event) {
@@ -16,29 +26,29 @@ function transformPoint(event) {
 }
 
 // Step 2: drawSquare and drawCircle functions
-function drawSquare(canvas, x, y, size, color) {
+function drawSquare(canvas, x, y, size, color, evaluation) {
     var rectangle = document.createElementNS(namespace, "rect")
     rectangle.setAttribute("x", x);
     rectangle.setAttribute("y", y);
     rectangle.setAttribute("width", size);
     rectangle.setAttribute("height", size);
     rectangle.setAttribute("fill", color);
+if(evaluation) {
+  currentUndo.push(rectangle);
+}
     canvas.appendChild(rectangle);
 }
 
-function drawCircle(canvas, xpos, ypos, radius, color) {
+function drawCircle(canvas, xpos, ypos, radius, color, evaluation) {
     var circle = document.createElementNS(namespace, "circle");
     circle.setAttribute("cx", xpos);
     circle.setAttribute("cy", ypos);
     circle.setAttribute("r", radius);
     circle.setAttribute("fill", color);
+    if(evaluation) {
+      currentUndo.push(circle);
+    }
     canvas.appendChild(circle);
-}
-
-function checkSelections() {
-  colorSelect = document.getElementById("colorSelect").value;
-  shapeSelect = document.getElementById("shapeSelect").value;
-  sizeSelect = document.getElementById("sizeSelect").value;
 }
 
 // Step 3: Event listeners
@@ -51,30 +61,50 @@ toggleDraw = false;
 })
 
 document.addEventListener("mousemove", function(e) {
-  checkSelections();
   var pt = transformPoint(e, screen);
     if(toggleDraw == true) {
       if(erase) {
-        if(shapeSelect == "square") {
-          drawSquare(screen, pt.x, pt.y, sizeSelect, "white");
+        if(shape == "square") {
+          drawSquare(screen, pt.x, pt.y, size, "white", false);
         }
         else {
-          drawCircle(screen, pt.x, pt.y, sizeSelect, "white");
+          drawCircle(screen, pt.x, pt.y, size, "white", false);
         }
       }
       else {
-        if(shapeSelect == "square") {
-          drawSquare(screen, pt.x, pt.y, sizeSelect, colorSelect);
+        if(color == "rainbow") {
+          if(shape == "square") {
+            drawSquare(screen, pt.x, pt.y, size, rainbowArray[rainbowIndex], true);
+          }
+          else {
+            drawCircle(screen, pt.x, pt.y, size, rainbowArray[rainbowIndex], true);
+          }
+          if(rainbowIndex == rainbowArray.length) {
+            rainbowIndex = 0;
+          }
+          else {
+            rainbowIndex++
+          }
+          console.log(rainbowIndex)
+        }
+        else if(shape == "square") {
+          drawSquare(screen, pt.x, pt.y, size, color, true);
         }
         else {
-          drawCircle(screen, pt.x, pt.y, sizeSelect, colorSelect);
+          drawCircle(screen, pt.x, pt.y, size, color, true);
         }
       }
+    }
+    if (currentUndo.length > 0 && toggleDraw == false) {
+        undoArray.push(currentUndo);
+        console.log(currentUndo);
+        currentUndo = [];
+        undoLength++;
     }
 })
 
 document.addEventListener("keydown", function(e) {
-  if(e.keyCode == 69) {
+  if(e.keyCode == 189) {
     if(erase) {
       erase = false;
     }
@@ -82,4 +112,27 @@ document.addEventListener("keydown", function(e) {
       erase = true;
     }
   }
+  if(e.keyCode == 187) {
+    var current = undoArray[undoLength];
+    for (var i = 0; i < current; i++) {
+      undoArray[undoLength[i]].parentNode.removeChild(undoArray[undoLength[i]])
+    }
+  }
+})
+
+shapeSelector.addEventListener("mouseup", function(e) {
+  shape = shapeSelector.value;
+})
+sizeSelector.addEventListener("mouseup", function(e) {
+  size = sizeSelector.value;
+})
+colorSelector.addEventListener("mouseup", function(e) {
+  color = colorSelector.value;
+})
+
+customColor.addEventListener("keyup", function(e) {
+  color = customColor.value;
+})
+customSize.addEventListener("keyup", function(e) {
+  size = customSize.value;
 })
