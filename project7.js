@@ -14,12 +14,17 @@ var rainbowArray = ["#ff0000", "#ff4000", "#ff8000", "#ffbf00", "#ffff00", "#bff
 var rainbowIndex = 0;
 var undoArray = [];
 var currentUndo = [];
+var lineX1;
+var lineX2;
+var lineY1;
+var lineY2;
+var drawingLine = false;
 
 // utility function
 function transformPoint(event) {
     var pt = screen.createSVGPoint()
-    pt.x = event.x
-    pt.y = event.y
+    pt.x = event.x;
+    pt.y = event.y;
     var mousept = pt.matrixTransform(screen.getScreenCTM().inverse())
     return mousept
 }
@@ -38,6 +43,20 @@ if(evaluation) {
     canvas.appendChild(rectangle);
 }
 
+function drawLine(canvas, x1, x2, y1, y2, width, color, evaluation) {
+    var line = document.createElementNS(namespace, "line")
+    line.setAttribute("x1", x1);
+    line.setAttribute("x2", x2);
+    line.setAttribute("y1", y1);
+    line.setAttribute("y2", y2);
+    line.setAttribute("stroke-width", width);
+    line.setAttribute("stroke", color);
+if(evaluation) {
+  currentUndo.push(line);
+}
+    canvas.appendChild(line);
+}
+
 function drawCircle(canvas, xpos, ypos, radius, color, evaluation) {
     var circle = document.createElementNS(namespace, "circle");
     circle.setAttribute("cx", xpos);
@@ -52,7 +71,31 @@ function drawCircle(canvas, xpos, ypos, radius, color, evaluation) {
 
 // Step 3: Event listeners
 document.addEventListener("mousedown", function(e) {
+  var pt = transformPoint(e);
   toggleDraw = true;
+  if(shape == "line") {
+    if(drawingLine == false) {
+      lineX1 = pt.x;
+      lineY1 = pt.y;
+      drawingLine = true;
+    }
+    else if(drawingLine) {
+      lineX2 = pt.x;
+      lineY2 = pt.y;
+      drawLine(screen, lineX1, lineX2, lineY1, lineY2, size, color, true);
+      drawingLine = false;
+      lineX1 = 0;
+      lineX2 = 0;
+      lineY1 = 0;
+      lineY2 = 0;
+    }
+  }
+  else {
+    lineX1 = 0;
+    lineX2 = 0;
+    lineY1 = 0;
+    lineY2 = 0;
+  }
 })
 
 document.addEventListener("mouseup", function(e) {
