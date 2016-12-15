@@ -14,7 +14,6 @@ var rainbowArray = ["#ff0000", "#ff4000", "#ff8000", "#ffbf00", "#ffff00", "#bff
 var rainbowIndex = 0;
 var undoArray = [];
 var currentUndo = [];
-var undoLength = 0;
 
 // utility function
 function transformPoint(event) {
@@ -97,9 +96,7 @@ document.addEventListener("mousemove", function(e) {
     }
     if (currentUndo.length > 0 && toggleDraw == false) {
         undoArray.push(currentUndo);
-        console.log(currentUndo);
         currentUndo = [];
-        undoLength++;
     }
 })
 
@@ -113,10 +110,13 @@ document.addEventListener("keydown", function(e) {
     }
   }
   if(e.keyCode == 187) {
-    var current = undoArray[undoLength];
-    for (var i = 0; i < current; i++) {
-      undoArray[undoLength[i]].parentNode.removeChild(undoArray[undoLength[i]])
+    var undoIndex = undoArray.length - 1;
+    var currentArray = undoArray[undoIndex];
+
+    for (var i = 0; i < currentArray.length; i++) {
+      screen.removeChild(currentArray[i])
     }
+    undoArray.pop(undoIndex)
   }
 })
 
